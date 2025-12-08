@@ -733,7 +733,15 @@ pub fn gui_main(recording: bool, input_file: Option<&str>, enable_mpris_cli: boo
                 },
                 AddFavorite(song_record) => {
                     if let Ok(mut favorites) = favorites_interface.write() {
-                        favorites.add_row_and_save(song_record);
+                        if favorites.is_favorite(song_record.clone()) {
+                            let dialog = gtk::MessageDialog::new(Some(&main_window),
+                                gtk::DialogFlags::MODAL, gtk::MessageType::Info, gtk::ButtonsType::Ok,
+                                &gettext("This song is already in your favorites list."));
+                            dialog.connect_response(|dialog, _| dialog.close());
+                            dialog.show_all();
+                        } else {
+                            favorites.add_row_and_save(song_record);
+                        }
                     } else {
                         eprintln!("Failed to acquire write lock on favorites_interface");
                     }
